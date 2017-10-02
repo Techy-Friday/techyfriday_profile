@@ -12,6 +12,10 @@ class techyfriday_profile::demo::quest2 (
     default: {    fail("Sorry ${::facts['os']['family']} is not supported")}
   }
 
+  file { $_directory:
+    ensure => directory,
+  }
+
   if ($directory == 'data') {
 
     notify { 'Directory data':
@@ -19,10 +23,10 @@ class techyfriday_profile::demo::quest2 (
 Welcome at quest2!
 
 This application_name is creating a directory '${_directory}' on this server.\n
-Your next task is to change this directory name to 'storage' via a hiera setting and a level that is environment independend.\n
-\n\n
-",
+Your next task is to change this directory name to 'storage' via a hiera setting at a level that is environment independend.\n
+\n",
     }
+
   }
 
   elsif ($directory == 'storage') {
@@ -31,26 +35,24 @@ Your next task is to change this directory name to 'storage' via a hiera setting
       notify { 'Directory storage':
         message => "
 Perfect you changed the directory name to ${_directory} as requested.\n
-\n
-This puppet run now created a file in ${_directory} called ${file_parameter}.\n
+This puppet run now created a file in ${_directory} called ${file_name}.\n
 In this file you can find some information but you can also adjust a parameter called 'file_parameter'\n
-Change this setting to any string that you want.\n\n
-",
+Change this setting to any string that you want.\n\n",
       }
     } else {
       notify { 'Directory storage with parameter':
         message => "
-Well done you have changed the file_parameter setting to ${file_parameter}.
+Well done! you have changed the file_parameter setting to '${file_parameter}'.
 
-Now to see the real power of hiera make a yaml file with different settings for the
+To see the real power of hiera make a yaml file with different settings for the
 acceptance environment and after that change the customer_environment to acceptance for this server.
-
 ",
       }
     }
 
     file { "${_directory}/${file_name}":
       ensure  => file,
+      require => File[$_directory],
       content => "
 # This file is manged by Puppet
 
@@ -61,7 +63,6 @@ Total memory:           ${::facts['memory']['system']['total']}\n
 Number of CPU's:        ${::facts['processors']['physicalcount']}\n
 Number of CPU's cores:  ${::facts['processors']['count']}\n
 CPU type:               ${::facts['processors']['models'][0]}\n
-\n
 \n
 Current value of file_parameter is: ${file_parameter}\n
 \n";
